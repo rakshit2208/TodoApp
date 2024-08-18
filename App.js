@@ -2,6 +2,7 @@ import React from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
 import Todo from './src/Todo';
 import Home from './src/Home';
+import SplashScreen from './src/SplashScreen';
 
 
 const App = () => {
@@ -10,7 +11,9 @@ const App = () => {
       <StatusBar />
       {/* <Todo/> */}
       <Home/>
+      {/* <SplashScreen/> */}
     </SafeAreaView>
+    
   );
 };
 

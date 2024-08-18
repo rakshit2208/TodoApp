@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 
+const baseUrl = 'http://192.168.38.156:5000'
+
 const Home = () => {
   const [todo, setTodo] = useState('');
   const [todoList, setTodoList] = useState([]);
@@ -17,7 +19,7 @@ const Home = () => {
 
   const fetchTodos = async () => {
     try {
-      const response = await fetch('http://192.168.38.156:5000/todos');
+      const response = await fetch(`${baseUrl}/todos`);
       if (response.ok) {
         const todos = await response.json();
         setTodoList(todos);
@@ -37,7 +39,7 @@ const Home = () => {
         setModalVisible(true);
         return;
     }
-        const response = await fetch('http://192.168.38.156:5000/todos', {
+        const response = await fetch(`${baseUrl}/todos`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -65,7 +67,7 @@ const Home = () => {
 
   const updateTodo = async (index) => {
     try {
-      const response = await fetch(`http://192.168.38.156:5000/todos/${todoList[index]._id}`, {
+      const response = await fetch(`${baseUrl}/todos/${todoList[index]._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +103,7 @@ const Home = () => {
 
   const confirmDelete = async () => {
     try {
-      const response = await fetch(`http://192.168.38.156:5000/todos/${todoList[todoToDelete]._id}`, {
+      const response = await fetch(`${baseUrl}/todos/${todoList[todoToDelete]._id}`, {
         method: 'DELETE',
       });
 
