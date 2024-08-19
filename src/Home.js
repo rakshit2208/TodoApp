@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Image } from 'react-native';
 import Modal from 'react-native-modal';
 
-const baseUrl = 'http://192.168.38.156:5000'
+const baseUrl = 'https://todo-app-apis-six.vercel.app/';
 
 const Home = () => {
   const [todo, setTodo] = useState('');
@@ -16,6 +16,15 @@ const Home = () => {
   useEffect(() => {
     fetchTodos();
   }, []);
+
+  useEffect(() => {
+    if (isModalVisible && modalType !== 'confirm') {
+      const timer = setTimeout(() => {
+        handleCloseModal();
+      }, 2500); 
+      return () => clearTimeout(timer);
+    }
+  }, [isModalVisible, modalType]);
 
   const fetchTodos = async () => {
     try {
@@ -38,30 +47,30 @@ const Home = () => {
         setModalType('error');
         setModalVisible(true);
         return;
-    }
-        const response = await fetch(`${baseUrl}/todos`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ todo }),
-        });
+      }
+      const response = await fetch(`${baseUrl}/todos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ todo }),
+      });
 
-        if (response.ok) {
-            await fetchTodos(); 
-            setTodo(''); 
-            setMessage('Todo added successfully');
-            setModalType('success');
-            setModalVisible(true);
-        } else {
-            setMessage('Failed to add todo');
-            setModalType('error');
-            setModalVisible(true);
-        }
-    } catch (error) {
+      if (response.ok) {
+        await fetchTodos();
+        setTodo('');
+        setMessage('Todo added successfully');
+        setModalType('success');
+        setModalVisible(true);
+      } else {
         setMessage('Failed to add todo');
         setModalType('error');
         setModalVisible(true);
+      }
+    } catch (error) {
+      setMessage('Failed to add todo');
+      setModalType('error');
+      setModalVisible(true);
     }
   };
 
@@ -76,7 +85,7 @@ const Home = () => {
       });
 
       if (response.ok) {
-        await fetchTodos(); // Reload todos
+        await fetchTodos();
         setTodo('');
         setEditIndex(null);
         setMessage('Todo updated successfully');
@@ -108,7 +117,7 @@ const Home = () => {
       });
 
       if (response.ok) {
-        await fetchTodos(); // Reload todos
+        await fetchTodos();
         setModalVisible(false);
         setTodoToDelete(null);
         setMessage('Todo deleted successfully');
@@ -146,10 +155,12 @@ const Home = () => {
         value={todo}
         onChangeText={setTodo}
       />
-      <Button
-        title={editIndex !== null ? 'Update Todo' : 'Add Todo'}
+      <TouchableOpacity
         onPress={editIndex !== null ? () => updateTodo(editIndex) : addTodo}
-      />
+        style={[styles.button, { backgroundColor: '#0B3D91' }]}
+      >
+        <Text style={styles.buttonText}>{editIndex !== null ? 'Update Todo' : 'Add Todo'}</Text>
+      </TouchableOpacity>
       <FlatList
         data={todoList}
         keyExtractor={(item, index) => index.toString()}
@@ -157,33 +168,45 @@ const Home = () => {
           <View style={styles.todoContainer}>
             <Text style={styles.todoText}>{item.todo}</Text>
             <View style={styles.actions}>
-              <TouchableOpacity onPress={() => {
-                setEditIndex(index);
-                setTodo(todoList[index].todo);
-              }} style={styles.editButton}>
-                <Text style={styles.buttonText}>✏️</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setEditIndex(index);
+                  setTodo(todoList[index].todo);
+                }}
+                style={styles.editButton}
+              >
+                <Image
+                  source={require('../images/newedit.png')}
+                  style={styles.image}
+                />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDelete(index)} style={styles.deleteButton}>
-                <Text style={styles.buttonText}>🗑️</Text>
+              <TouchableOpacity
+                onPress={() => handleDelete(index)}
+                style={styles.deleteButton}
+              >
+                <Image
+                  source={require('../images/d.png')}
+                  style={styles.image}
+                />
               </TouchableOpacity>
             </View>
           </View>
         )}
       />
 
-      {/* Success/Error/Confirmation Modal */}
       <Modal isVisible={isModalVisible} onBackdropPress={handleCloseModal}>
         <View style={styles.modalContent}>
           <Text style={styles.modalText}>{message}</Text>
           {modalType === 'confirm' && (
             <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={cancelDelete} />
+              <TouchableOpacity onPress={cancelDelete} style={styles.modalButton}>
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
               <View style={styles.buttonSpacer} />
-              <Button title="OK" onPress={confirmDelete} />
+              <TouchableOpacity onPress={confirmDelete} style={styles.modalButton}>
+                <Text style={styles.buttonText}>Yes</Text>
+              </TouchableOpacity>
             </View>
-          )}
-          {modalType !== 'confirm' && (
-            <Button title="OK" onPress={handleCloseModal} />
           )}
         </View>
       </Modal>
@@ -209,6 +232,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 5,
   },
+  button: {
+    padding: 10,
+    alignItems: 'center',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
   todoContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -219,7 +252,7 @@ const styles = StyleSheet.create({
   },
   todoText: {
     fontSize: 18,
-    flexShrink: 1,  
+    flexShrink: 1,
     marginRight: 10,
   },
   actions: {
@@ -228,27 +261,23 @@ const styles = StyleSheet.create({
   editButton: {
     marginRight: 10,
     padding: 5,
-    backgroundColor: '#4CAF50',
-    borderRadius: 5,
   },
   deleteButton: {
     padding: 5,
-    backgroundColor: '#F44336',
-    borderRadius: 5,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
+  image: {
+    width: 25,
+    height: 25,
+    resizeMode: 'contain',
   },
   modalContent: {
     backgroundColor: 'white',
-    padding: 10,
-    borderRadius: 10,
-    alignItems: 'center' 
+    padding: 13,
+    borderRadius: 15,
+    alignItems: 'center',
   },
   modalText: {
     fontSize: 16,
-    marginBottom: 20,
     textAlign: 'center',
   },
   modalButtons: {
@@ -259,6 +288,12 @@ const styles = StyleSheet.create({
   },
   buttonSpacer: {
     marginHorizontal: 10,
+  },
+  modalButton: {
+    marginTop:15,
+    padding: 8,
+    backgroundColor: '#0B3D91',
+    borderRadius: 5,
   },
 });
 

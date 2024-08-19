@@ -1,8 +1,8 @@
 // SplashScreen.js
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, Button } from 'react-native';
 
-const SplashScreen = () => {
+const SplashScreen = (props) => {
 
   return (
     <View style={styles.container}>
@@ -12,6 +12,7 @@ const SplashScreen = () => {
         style={styles.logo}
       />
       <Text style={styles.title}>Welcome to My Todo App</Text>
+      <Button title='go to to home' onPress={()=>props.navigation.navigate("Home")}/>
     </View>
   );
 };
